@@ -1,2 +1,2 @@
-# 5SPD0-Group5
-2D scatttering by a graded-index dielectric circular cylinder
+# 2-D Scattering by a graded-index dielectric circular cylinder
+See PDF
