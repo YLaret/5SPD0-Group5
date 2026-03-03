@@ -21,7 +21,7 @@ k1 = 2*np.pi/wavelength *n1 #w/c = 2pi/lambda
 #k1 = 2*np.pi / wavelength
 k2 = k1 * n2    # because epsilon_r = 2
 a = wavelength
-rho = 1 # should near infinite for sigma to be far field approx
+rho =1 # should near infinite for sigma to be far field approx
 # m should be m>>ka
 m_max = 40  # +1 of what comes out of the tolerance function, otherwise it is not working
 phi = np.linspace(-np.pi, np.pi, m_max*2)
@@ -207,7 +207,7 @@ plot_sigma(phi, sigma, wavelength)
 
 
 
-"""
+
 plt.plot(Ez.real, Ez.imag, label = 'Ez')
 plt.plot(H_phi.real, H_phi.imag, label='H_phi')
 plt.xlabel('phi in radians')
@@ -236,8 +236,8 @@ def visualize_field(k1, k2, am_r, am_t, m_max, E0, a, Y1):
     # Compute field point-by-point
     for i in range(N):
         for j in range(N):
-            Ez_field[i, j] = compute_E_z(R[i, j],Phi[i, j],k1,k2,am_r,am_t,m_max,E0, a)
-            H_phi_field[i,j] = compute_H_phi(R[i,j], Phi[i,j], k1, k2, am_r, am_t, m_max, E0, a, Y1)
+            Ez_field[i, j] = compute_E_z(R[i, j],Phi[i, j],k1,k2,m_max,E0, a)
+            H_phi_field[i,j] = compute_H_phi(R[i,j], Phi[i,j], k1, k2, m_max, E0, a, Y1)
             print(i, j)
 
     # Plot real part
@@ -272,4 +272,4 @@ def visualize_field(k1, k2, am_r, am_t, m_max, E0, a, Y1):
     plt.show()
 
 visualize_field(k1, k2, am_r, am_t, m_max, E0, a, Y1)
-""";
+
