@@ -19,7 +19,7 @@ from scipy.special import jv, jvp, hankel2, h2vp
 # Initial parameters
 wavelength = 1
 n1 = np.sqrt(1)
-n2 = np.sqrt(2)
+n2 = np.sqrt(1e9)
 k1 = 2*np.pi/wavelength *n1 #w/c = 2pi/labda
 #k1 = 2*np.pi / wavelength
 k2 = k1 * n2    # because epsilon_r = 2
@@ -90,7 +90,7 @@ def min_m_order(am_r, m_max, significance):
 def compute_E_z(rho, phi, k1, k2, am_r, am_t, m_max, E0, a):
     x1 = k1 * rho
     x2 = k2 * rho
-
+    Escat = 0j
     Ez = 0j
     for m in range(-m_max, m_max):
         # Definitions of Bessel and Hankel functions
@@ -104,12 +104,13 @@ def compute_E_z(rho, phi, k1, k2, am_r, am_t, m_max, E0, a):
         em_t = am_t[m_max+m]*(-1j)**m*Jm_x2
         
         if rho>=a:
+            Escat += np.exp(1j*m*phi)*E0*em_r
             Ez += np.exp(1j*m*phi)*E0*(em_i+em_r)     # only the scattered field (outside the cylinder). rho<a does not contribute to far-field scattering width sigma
         elif rho<=a:
             Ez += np.exp(1j*m*phi)*E0*em_t
         
         
-    return Ez
+    return Ez, Escat
 
 def compute_H_phi(rho, phi, k1, k2, am_r, am_t, m_max, E0, a, Y1):
     x1 = k1 * rho
@@ -134,6 +135,19 @@ def compute_H_phi(rho, phi, k1, k2, am_r, am_t, m_max, E0, a, Y1):
         
         
     return H_phi
+
+def plot_am_log(am_r, m_max):
+    am_r = np.abs(am_r[m_max::])
+    m = np.arange(0, m_max )
+
+    plt.plot(m, am_r)
+    plt.yscale('log')
+    plt.xlabel('$m$')
+    plt.ylabel('$|a_m^r|$')
+    plt.title('$|a_m^r|$ as a function of $m$ (log-scale)')
+    plt.grid()
+    plt.show()
+
 
 def compute_sigma(phi, k1, k2, a, m_max, E0):
 
@@ -161,17 +175,6 @@ def compute_sigma(phi, k1, k2, a, m_max, E0):
 
 
 ### PLOTTING
-def plot_am_log(am_r, m_max):
-    am_r = np.abs(am_r[m_max::])
-    m = np.arange(0, m_max )
-
-    plt.plot(m, am_r)
-    plt.yscale('log')
-    plt.xlabel('$m$')
-    plt.ylabel('$|a_m^r|$')
-    plt.title('$|a_m^r|$ as a function of $m$ (log-scale)')
-    plt.grid()
-    plt.show()
 
 
 def plot_sigma(phi, sigma, wavelength):
@@ -183,16 +186,36 @@ def plot_sigma(phi, sigma, wavelength):
     plt.grid()
     plt.show()
     
+    
+#%%
+
+def compute_sigma_1(Escat, E0, phi, rho):
+    sigma = 2 * np.pi * (np.abs(Escat))**2/E0**2 * rho # ik denk dat rho er nog wel inmoet want onze rho gaat niet naar oneindig
+    return sigma
+
+def compute_sigma_plot(phi, sigma, wavelength):
+    sig_lab = 20*np.log10(sigma/wavelength)
+    plt.plot(phi, sig_lab)
+    plt.xlabel('phi in radians')
+    plt.ylabel('sigma/lambda')
+    plt.title('sigma/labda plot as a function of phi')
+    plt.grid()
+    plt.show()
+    
+    
 
 #%% subproblem 1
 am_r, am_t = compute_complex_amplitudes(k1, k2, a, m_max)
 compute_log_scale_plot(am_r, m_max)
 #morder = min_m_order(am_r, m_max, significance)
 #print("The complex amplitude reached significance at:", morder)
-Ez = compute_E_z(rho, phi, k1, k2, am_r, am_t, m_max, E0, a)
+Ez, Escat = compute_E_z(rho, phi, k1, k2, am_r, am_t, m_max, E0, a)
 H_phi = compute_H_phi(rho, phi, k1, k2, am_r, am_t, m_max, E0, a, Y1)
 sigma = compute_sigma(phi, k1, k2, a, m_max, E0)
 plot_sigma(phi, sigma, wavelength)
+
+sigma1 = compute_sigma_1(Escat, E0, phi, rho)
+compute_sigma_plot(phi, sigma1, wavelength)
 
 
 plt.plot(Ez.real, Ez.imag, label = 'Ez')
@@ -223,7 +246,7 @@ def visualize_field(k1, k2, am_r, am_t, m_max, E0, a, Y1):
     # Compute field point-by-point
     for i in range(N):
         for j in range(N):
-            Ez_field[i, j] = compute_E_z(R[i, j],Phi[i, j],k1,k2,am_r,am_t,m_max,E0, a)
+            Ez_field[i, j] = compute_E_z(R[i, j],Phi[i, j],k1,k2,am_r,am_t,m_max,E0, a)[0]
             H_phi_field[i,j] = compute_H_phi(R[i,j], Phi[i,j], k1, k2, am_r, am_t, m_max, E0, a, Y1)
             print(i, j)
 
