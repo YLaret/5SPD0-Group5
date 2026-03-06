@@ -18,23 +18,34 @@ from scipy.special import jv, jvp, hankel2, h2vp
 
 # Initial parameters
 wavelength = 1
-n1 = np.sqrt(1)
-n2 = np.sqrt(1e9)
+
+n1 = np.sqrt(1)  # free space
+n2 = np.sqrt(2)  # coating
+
 k1 = 2*np.pi/wavelength *n1 #w/c = 2pi/labda
 #k1 = 2*np.pi / wavelength
 k2 = k1 * n2    # because epsilon_r = 2
+
+
 a = wavelength
 rho = 1e5 # should near infinite for sigma to be far field approx
 # m should be m>>ka
+
 m_max = 40  # +1 of what comes out of the tolerance function, otherwise it is not working
-phi = np.linspace(-np.pi, np.pi, m_max*2)
 significance = 1e-1 # tolerance 
+
+phi = np.linspace(-np.pi, np.pi, m_max*2)
 omega = 2*np.pi*3e8/wavelength
+
 mu = 4*np.pi*10**-7   #mu0 voor gebruikt
 mu1 = 1/3e8  # zie schrift voor omschrijven
+
 Y1 = k1/(omega*mu1)
 Y2 = np.sqrt(1/mu1)  # epsilon 1 = 1
+
 E0 = 1
+
+
 
 def compute_complex_amplitudes(k1, k2, a, m_max):
     # Bessel/Hankel function arguments
