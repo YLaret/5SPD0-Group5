@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Fri Mar  6 15:27:46 2026
+
+@author: 20213134
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Tue Mar  3 17:59:01 2026
 
 @author: 20213134
@@ -46,12 +53,14 @@ a1 = wavelength
 a2 = 3*wavelength/2
 
 
-k = [k1, k2, k3, 1e16]  # freespace, coating, PEC
-a = [a2, a1, 0.5]      # coating, PEC
+k = [k1, k2, k3]  # freespace, coating, PEC
+a = [a2, a1]      # coating, PEC
 
 def complex_amplitudes(k, a, m_max):
     am_r_tot = []
     am_t_tot = []
+    am_t_final = []
+    am_r_final = []
     for ai in range(len(a)):
         for ki in range(len(k)-1):
             x1 = k[ki]*a[ai]
@@ -81,18 +90,30 @@ def complex_amplitudes(k, a, m_max):
             
         am_r_tot.append(am_r)
         am_t_tot.append(am_t)
+        
     am_r_tot = np.array(am_r_tot, dtype=complex)
     am_t_tot = np.array(am_t_tot, dtype=complex)
+        
+    for lijst in am_r_tot.T:
+        am_r_final.append(sum(lijst))
+        
+    for lijst2 in am_t_tot.T:    
+        am_t_final.append(sum(lijst2))
     
-    return am_r_tot, am_t_tot
+    am_r_final = np.array(am_r_final, dtype=complex)
+    am_t_final = np.array(am_t_final, dtype=complex)
+    
+    
+    return am_r_final, am_t_final
 
 
 
 def compute_log_scale_plot(am_r, m_max):
     m_list = np.arange(0, m_max )
-    for i in range(len(am_r)):
-        am_ri = np.abs(am_r[i][m_max::])
-        plt.plot(m_list, am_ri)
+    #for i in range(len(am_r.T)):
+        #am_ri = np.abs(am_r[i][m_max::])
+        #plt.plot(m_list, am_ri)
+    plt.plot(m_list, np.abs(am_r[m_max::]))
     plt.yscale('log')
     plt.xlabel('Order m')
     plt.ylabel('Complex amplitude a_m^r (log)')
@@ -103,12 +124,16 @@ def compute_log_scale_plot(am_r, m_max):
 def compute_E_z(rho, phi, k, am_r, am_t, m_max, E0, a):
     Escat_tot = []
     Ez_tot = []
+    
     for ai in range(len(a)):
         for ki in range(len(k)-1):
             x1 = k[ki]*a[ai]
             x2 = k[ki+1]*a[ai]
             Escat = 0j
             Ez = 0j
+            em_i = 0j
+            em_r = 0j
+            em_t = 0j
             for m in range(-m_max, m_max):
                 # Definitions of Bessel and Hankel functions
                 Jm_x1 = jv(m, x1)   # m = order, x = argument
@@ -121,29 +146,35 @@ def compute_E_z(rho, phi, k, am_r, am_t, m_max, E0, a):
                 Hm_x1_p = h2vp(m, x1)
                 
                 # Angular harmonic coefficients
-                em_i = (-1j)**m*Jm_x1
-                em_r = am_r[ai][m+m_max]*(-1j)**m*Hm_x1
-                em_t = am_t[ai][m_max+m]*(-1j)**m*Jm_x2
+                em_i += (-1j)**m*Jm_x1
+                em_r += am_r[m+m_max]*(-1j)**m*Hm_x1
+                em_t += am_t[m_max+m]*(-1j)**m*Jm_x2
         
-                if rho>=a[ai]:
-                    Escat += np.exp(1j*m*phi)*E0*em_r
-                    Ez += np.exp(1j*m*phi)*E0*(em_i+em_r)     # only the scattered field (outside the cylinder). rho<a does not contribute to far-field scattering width sigma
-                elif rho<=a[ai]:
-                    Ez += np.exp(1j*m*phi)*E0*em_t
+    if rho>=a[0]:
+        Escat += np.exp(1j*m*phi)*E0*em_r
+        Ez += np.exp(1j*m*phi)*E0*(em_i+em_r)     # only the scattered field (outside the cylinder). rho<a does not contribute to far-field scattering width sigma
+    elif rho<=a[0]:
+        Ez += np.exp(1j*m*phi)*E0*em_t
+    else:
+        Ez = 0
     
-        Escat_tot.append(Escat)
-        Ez_tot.append(Ez)
+        #Escat_tot.append(Escat)
+        #Ez_tot.append(Ez)
         
-    Escat_tot = np.array(Escat_tot, dtype=complex)
-    Ez_tot = np.array(Ez_tot, dtype=complex)
+    #Escat_tot = np.array(Escat_tot, dtype=complex)
+    #Ez_tot = np.array(Ez_tot, dtype=complex)
     
-    return Ez_tot, Escat_tot
+    return Ez, Escat
+
 
 
 #%% calls
-am_r, am_t = complex_amplitudes(k, a, m_max)    
+am_r, am_t = complex_amplitudes(k, a, m_max)
+#%%    
 compute_log_scale_plot(am_r, m_max)
+#%%
 Ez, Escat = compute_E_z(rho, phi, k, am_r, am_t, m_max, E0, a)
+#%%
 
 def compute_sigma_scat(rho, phi, Escat, E0):
     """
@@ -168,8 +199,8 @@ def plot_sigma(phi, sigma, wavelength):
     plt.grid()
 
 
-#sigma = compute_sigma_scat(rho, phi, Escat, E0)
-#plot_sigma(phi, sigma, wavelength)
+sigma = compute_sigma_scat(rho, phi, Escat, E0)
+plot_sigma(phi, sigma, wavelength)
 
 #%%
 
@@ -226,13 +257,13 @@ def visualize_field(k, am_r, am_t, m_max, E0, a, Y1):
     #plt.ylabel('y')
     #plt.show()
 
-#visualize_field(k, am_r, am_t, m_max, E0, a, Y1)
+visualize_field(k, am_r, am_t, m_max, E0, a, Y1)
 
 #%%
 
 def visualize_field(k, am_r, am_t, m_max, E0, a, Y1):
     # Create 2D grid
-    N = 100  # finer grid for better visualization
+    N = 25  # finer grid for better visualization
     x = np.linspace(-2*a[0], 2*a[0], N)
     y = np.linspace(-2*a[0], 2*a[0], N)
     X, Y = np.meshgrid(x, y)

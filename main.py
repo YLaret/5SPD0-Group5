@@ -33,8 +33,8 @@ E0 = 1
 am_r, am_t = f.compute_complex_amplitudes(k1, k2, m_max, a)
 Ez, Escat = f.compute_E_z(rho, phi, k1, k2, am_r, am_t, E0, a)
 H_phi = f.compute_H_phi(rho, phi, k1, k2, am_r, am_t, E0, Y1, a)
-sigma = f.compute_sigma(phi, k1, k2, a, m_max, E0)
-sigma_scat = f.compute_sigma_scat(rho, phi, Escat, E0)
+sigma = f.compute_sigma(phi, k1, k2, a, m_max, E0)    # functie van nasa
+sigma_scat = f.compute_sigma_scat(rho, phi, Escat, E0)   # functie uit reader
 # plots
 f.plot_am_log(am_r, m_max)
 f.plot_sigma(phi, sigma, wavelength)

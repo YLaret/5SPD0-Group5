@@ -20,7 +20,7 @@ from scipy.special import jv, jvp, hankel2, h2vp
 wavelength = 1
 
 n1 = np.sqrt(1)  # free space
-n2 = np.sqrt(2)  # coating
+n2 = np.sqrt(1e9)  # coating
 
 k1 = 2*np.pi/wavelength *n1 #w/c = 2pi/labda
 #k1 = 2*np.pi / wavelength
