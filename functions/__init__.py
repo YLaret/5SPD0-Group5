@@ -1,5 +1,7 @@
 from .compute_complex_amplitudes import compute_complex_amplitudes
+from .compute_complex_amplitudes_coated_PEC import compute_complex_amplitudes_coated_PEC
 from .compute_E_z import compute_E_z
+from .compute_E_z_coated_PEC import compute_E_z_coated_PEC
 from .compute_H_phi import compute_H_phi
 from .compute_sigma import compute_sigma
 from .compute_sigma_scat import compute_sigma_scat
