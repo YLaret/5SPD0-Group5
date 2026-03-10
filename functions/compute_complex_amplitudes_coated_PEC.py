@@ -9,6 +9,7 @@ def compute_complex_amplitudes_coated_PEC(k1, k2, m_max, a, b):
         a = outer radius
         b = PEC radius
     """
+    
     am_r = []
     am_c = []
     
