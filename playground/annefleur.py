@@ -159,7 +159,6 @@ def plot_am_log(am_r, m_max):
     plt.grid()
     plt.show()
 
-
 def compute_sigma(phi, k1, k2, a, m_max, E0):
 
     sigma = np.zeros(len(phi),dtype=np.complex128)
