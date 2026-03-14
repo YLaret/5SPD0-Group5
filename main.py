@@ -14,7 +14,8 @@ m_max = 60  # +1 of what comes out of the tolerance function, otherwise it is no
 phi = np.linspace(-np.pi, np.pi, m_max*2)
 significance = 1e-1 # tolerance
 omega = 2*np.pi*3e8/wavelength
-mu = 4*np.pi*10**-7   #mu0 voor gebruikt
+eps0 = 8.854187e-12         # [F/m]
+mu0 = 4*np.pi*10**-7        # [N*A^(-2)]
 mu1 = 1/3e8  # zie schrift voor omschrijven
 
 E0 = 1
@@ -66,6 +67,16 @@ Y2 = np.sqrt(1/mu1)
 am_r, am_c = f.compute_complex_amplitudes_coated_PEC(k1, k2, m_max, a,b)
 Ez_cP, Escat_cP = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
 sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit reader
+
+# compute integrate fields
+rho = 3
+epsr = 2
+Ez_cP, Escat_cP = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
+Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, eps0, mu0, epsr, E0, omega, a, b, m_max)
+print("BESSEL")
+print(Ez_cP)
+print("ODE")
+print(Ez_cP_int)
 # plots
 f.plot_sigma(phi, sigma_scat_cP, wavelength)
 
