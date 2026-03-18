@@ -46,7 +46,7 @@ def compute_fields_coated_PEC(rho, phi, eps0, mu0, epsr, E0, omega, a, b, m_max)
             Ez += sol_rho.y[0, 0] * np.exp(1j * m * phi)
             Hphi += sol_rho.y[1, 0] * np.exp(1j * m * phi)
         else:
-            sol_rho = solve_ivp(system, [a, rho], sol_boundary.y[:,-1], t_eval=[rho], args=[omega,mu0,eps0,epsr,m], method='BDF')
+            sol_rho = solve_ivp(system, [a, rho], sol_boundary.y[:,-1], t_eval=[rho], args=[omega,mu0,eps0,1,m], method='BDF')
             Ez += sol_rho.y[0,0] * np.exp(1j * m * phi)
             Hphi += sol_rho.y[1,0] * np.exp(1j * m * phi)
             
