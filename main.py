@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 # PARAMETERS
 wavelength = 1
-m_max = 60  # +1 of what comes out of the tolerance function, otherwise it is not working, m should be m>>ka
-phi = np.linspace(-np.pi, np.pi, m_max*2)
+m_max = 40  # +1 of what comes out of the tolerance function, otherwise it is not working, m should be m>>ka
+phi = np.linspace(-np.pi, np.pi, 400)
 significance = 1e-1 # tolerance
 omega = 2*np.pi*3e8/wavelength
 eps0 = 8.854187e-12         # [F/m]
@@ -69,14 +69,19 @@ Ez_cP, Escat_cP = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, 
 sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit reader
 
 # compute integrate fields
-rho = 3
+rho = 1.1
 epsr = 2
 Ez_cP, Escat_cP = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
-Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, eps0, mu0, epsr, E0, omega, a, b, m_max)
+Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, phi,eps0, mu0, epsr, E0, omega, a, b, m_max)
 print("BESSEL")
 print(Ez_cP)
 print("ODE")
 print(Ez_cP_int)
+
+plt.figure()
+plt.plot(phi/2/np.pi*360,np.abs(Ez_cP_int)/np.max(np.abs(Ez_cP_int)))
+plt.figure()
+plt.plot(phi/2/np.pi*360,np.abs(Ez_cP)/np.max(np.abs(Ez_cP)))
 # plots
 f.plot_sigma(phi, sigma_scat_cP, wavelength)
 

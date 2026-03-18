@@ -2,7 +2,7 @@ import numpy as np
 from scipy.special import jv, jvp, yv, hankel2, h2vp
 from scipy.integrate import solve_ivp
 
-def compute_fields_coated_PEC(rho, eps0, mu0, epsr, E0, omega, a, b, m_max):
+def compute_fields_coated_PEC(rho, phi, eps0, mu0, epsr, E0, omega, a, b, m_max):
     """
         rho = distance
         k1 = wavenumber in the homogeneous exterior domain
@@ -12,16 +12,16 @@ def compute_fields_coated_PEC(rho, eps0, mu0, epsr, E0, omega, a, b, m_max):
         b = PEC radius
     """
     
-    Ez = np.zeros(2*m_max,dtype='complex')
-    Hphi = np.zeros(2*m_max,dtype='complex')
+    Ez = 0j
+    Hphi = 0j
     
     def system(r, y, omega, mu0, eps0, epsr, m):
-        Ez, Hphi = y
+        Ez_m, Hphi_m = y
     
-        dEz = 1j*omega*mu0*Hphi
-        dHphi = (1j*omega*eps0*epsr-1j*m**2/(omega*mu0*r**2))*Ez-1/r*Hphi
+        dEz_m = 1j*omega*mu0*Hphi_m
+        dHphi_m = 1j*omega*eps0*epsr*Ez_m - 1j*m**2/(omega*mu0*r**2)*Ez_m - 1/r*Hphi_m
         
-        return [dEz, dHphi]
+        return [dEz_m, dHphi_m]
         
     
     for m in range(-m_max, m_max):
@@ -39,15 +39,15 @@ def compute_fields_coated_PEC(rho, eps0, mu0, epsr, E0, omega, a, b, m_max):
         
         # compute @ rho
         if rho <= b:
-            Ez[m+m_max] += y_pec[0]
-            Hphi[m+m_max] += y_pec[1]
+            Ez += y_pec[0] * np.exp(1j * m * phi)
+            Hphi += y_pec[1] * np.exp(1j * m * phi)
         elif rho <= a:
             sol_rho = solve_ivp(system, r_span, y_pec, t_eval=[rho], args=[omega,mu0,eps0,epsr,m], method='BDF')
-            Ez[m+m_max] += sol_rho.y[0, 0]
-            Hphi[m+m_max] += sol_rho.y[1, 0]
+            Ez += sol_rho.y[0, 0] * np.exp(1j * m * phi)
+            Hphi += sol_rho.y[1, 0] * np.exp(1j * m * phi)
         else:
             sol_rho = solve_ivp(system, [a, rho], sol_boundary.y[:,-1], t_eval=[rho], args=[omega,mu0,eps0,epsr,m], method='BDF')
-            Ez[m+m_max] += sol_rho.y[0,0]
-            Hphi[m+m_max] += sol_rho.y[1,0]
+            Ez += sol_rho.y[0,0] * np.exp(1j * m * phi)
+            Hphi += sol_rho.y[1,0] * np.exp(1j * m * phi)
             
     return Ez, Hphi
