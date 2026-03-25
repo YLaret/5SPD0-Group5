@@ -1,53 +1,45 @@
 import numpy as np
-from scipy.special import jv, jvp, yv, hankel2, h2vp
 from scipy.integrate import solve_ivp
 
-def compute_fields_coated_PEC(rho, phi, eps0, mu0, epsr, E0, omega, a, b, m_max):
+
+def compute_fields_coated_PEC(rho, phi, k1, n1, n_func, a, b, m_max):
     """
-        rho = distance
-        k1 = wavenumber in the homogeneous exterior domain
-        k2 = wavenumber in the coating domain
-        E0 = wave amplitude
-        a = outer radius
-        b = PEC radius
+    rho: observation point
+    k1: wavenumber outside cylinder
+    n1: refractive index outside cylinder
+    n_func: a function n(r) that returns refractive index at normalized radius r
+    a: outer radius
+    b: PEC radius
     """
-    
     Ez = 0j
     Hphi = 0j
     
-    def system(r, y, omega, mu0, eps0, epsr, m):
-        Ez_m, Hphi_m = y
-    
-        dEz_m = 1j*omega*mu0*Hphi_m
-        dHphi_m = 1j*omega*eps0*epsr*Ez_m - 1j*m**2/(omega*mu0*r**2)*Ez_m - 1/r*Hphi_m
-        
-        return [dEz_m, dHphi_m]
-        
-    
-    for m in range(-m_max, m_max):
-        # coated span
-        r_span = [b,a]
+    # genormaliseerde begin en eind waarden, zodat je in de solver ook gescaled blijft 
+    r_start = b/a
+    r_end = rho/a
+    def scaled_system(r, f, m, k1, a, n1, n_func):
+        abs_m = abs(m)
+        n_r = n_func(r) 
+        # de matrix 
+        A11 = -abs_m
+        A12 = -k1*a
+        A21 = (k1*a*r**2*(n_r**2/n1**2))-(m**2/(k1*a))
+        A22 = -abs_m
+        # de oplossing voor de afgeleide naar geschaalde rho
+        df1 = (1/r)*(A11*f[0]+A12*f[1])
+        df2 = (1/r)*(A21*f[0]+A22*f[1])
+        return [df1, df2]
 
-        # boundary coating-vaccuum
-        r_boundary = a
+    for m in range(-m_max, m_max + 1):
+        f_initial = [0j, 0.5+0j] # willekeurige Hphi
         
-        # boundary PEC-coating (E=0, H=1 (PEC))
-        y_pec = [0j, 1+0j]
+        sol = solve_ivp(scaled_system, [r_start, r_end], f_initial, args=(m, k1, a, n1, n_func), method='RK45', rtol=1e-10, atol=1e-12)
+        f_final = sol.y[:, -1]
+
+        Ez_c = 1j*((rho/a)**abs(m))*f_final[0]
+        Hphi_c = ((rho/a)**(abs(m)-1))*f_final[1]
         
-        # evaluate at boundary coating-vaccuum
-        sol_boundary = solve_ivp(system, r_span, y_pec, t_eval=[r_boundary], args=[omega,mu0,eps0,epsr,m], method='BDF')
-        
-        # compute @ rho
-        if rho <= b:
-            Ez += y_pec[0] * np.exp(1j * m * phi)
-            Hphi += y_pec[1] * np.exp(1j * m * phi)
-        elif rho <= a:
-            sol_rho = solve_ivp(system, r_span, y_pec, t_eval=[rho], args=[omega,mu0,eps0,epsr,m], method='BDF')
-            Ez += sol_rho.y[0, 0] * np.exp(1j * m * phi)
-            Hphi += sol_rho.y[1, 0] * np.exp(1j * m * phi)
-        else:
-            sol_rho = solve_ivp(system, [a, rho], sol_boundary.y[:,-1], t_eval=[rho], args=[omega,mu0,eps0,1,m], method='BDF')
-            Ez += sol_rho.y[0,0] * np.exp(1j * m * phi)
-            Hphi += sol_rho.y[1,0] * np.exp(1j * m * phi)
+        Ez += Ez_c*np.exp(1j*m*phi)
+        Hphi += Hphi_c*np.exp(1j*m*phi)
             
-    return Ez, Hphi
+    return Ez, Hphi, sol.y

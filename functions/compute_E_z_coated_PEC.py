@@ -15,6 +15,7 @@ def compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b):
     
     Ez = 0j
     Escat = 0j
+    Ein = 0j
     
     m_max = int(len(am_r)/2)
     
@@ -36,9 +37,11 @@ def compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b):
         if rho>=a:
             Ez += np.exp(1j*m*phi)*E0*(em_i+em_r)
             Escat += np.exp(1j*m*phi)*E0*em_r
+            Ein += np.exp(1j*m*phi)*E0*em_i
         elif b < rho < a:
             Ez += np.exp(1j*m*phi)*E0*em_c
+            Ein += np.exp(1j*m*phi)*E0*em_i
         else:
             Ez += 0
             
-    return Ez, Escat
+    return Ez, Escat, Ein
