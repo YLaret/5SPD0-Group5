@@ -78,7 +78,7 @@ sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit rea
 def n_function(r):   # hier kunnen we later de gradient in stoppen
     return n2
 # compute integrate fields
-rho = 1.7    #1.7 is de sweet spot
+rho = 10    #1.7 is de sweet spot
 epsr = np.sqrt(2)
 
 Ez_cP_int, Hphi_cP_int, soly = f.compute_fields_coated_PEC(rho, phi, k1, n1, n_function, a, b, m_max)
