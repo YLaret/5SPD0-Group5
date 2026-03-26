@@ -16,7 +16,7 @@ significance = 1e-1 # tolerance
 omega = 2*np.pi*3e8/wavelength
 eps0 = 8.854187e-12         # [F/m]
 mu0 = 4*np.pi*10**-7        # [N*A^(-2)]
-mu1 = 1/3e8  # zie schrift voor omschrijven
+mu1 = mu0  # zie schrift voor omschrijven
 
 E0 = 1
 
@@ -32,9 +32,9 @@ k2 = k1 * n2
 Y1 = k1/(omega*mu1)
 Y2 = np.sqrt(1/mu1)  # epsilon 1 = 1
 
-### SUBPROBLEMS
-## 1
-# set homogeneous PEC interior like NASA paper:
+# ### SUBPROBLEMS
+# ## 1
+# # set homogeneous PEC interior like NASA paper:
 n1 = np.sqrt(1)
 n2 = np.sqrt(1e8)
 k1 = 2*np.pi/wavelength *n1
@@ -44,7 +44,11 @@ Y1 = k1/(omega*mu1)
 Z1 = 1/Y1
 Y2 = np.sqrt(1/mu1)
 
-# compute fields
+Y1 = k1/(omega*mu1)
+Y2 = np.sqrt(1/mu1)
+
+
+# # compute fields
 am_r, am_t = f.compute_complex_amplitudes(k1, k2, m_max, a)
 Ez, Escat = f.compute_E_z(rho, phi, k1, k2, am_r, am_t, E0, a)
 H_phi = f.compute_H_phi(rho, phi, k1, k2, am_r, am_t, E0, Y1, a)
@@ -54,6 +58,11 @@ sigma_scat = f.compute_sigma_scat(rho, phi, Escat, E0)   # functie uit reader
 f.plot_am_log(am_r, m_max)
 f.plot_sigma(phi, sigma_scat, wavelength)
 plt.show()
+
+# # plots
+# f.plot_am_log(am_r, m_max)
+# f.plot_sigma(phi, sigma_scat, wavelength)
+
 
 
 #%%
@@ -72,6 +81,7 @@ Y2 = np.sqrt(1/mu1)
 am_r, am_c = f.compute_complex_amplitudes_coated_PEC(k1, k2, m_max, a,b)
 Ez_cP, Escat_cP, Ein_cP = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
 sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit reader
+
 
 # NUMERICAL
 
