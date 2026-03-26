@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.integrate import solve_ivp
+from scipy.special import jv, yv, jvp, yvp
 
-
-def compute_fields_coated_PEC(rho, phi, k1, n1, n_func, a, b, m_max):
+def compute_fields_coated_PEC(rho, phi, omega, k1, n1, n_func, Y1, a, b, m_max, eps0, mu0):
     """
     rho: observation point
     k1: wavenumber outside cylinder
@@ -14,32 +14,34 @@ def compute_fields_coated_PEC(rho, phi, k1, n1, n_func, a, b, m_max):
     Ez = 0j
     Hphi = 0j
     
-    # genormaliseerde begin en eind waarden, zodat je in de solver ook gescaled blijft 
     r_start = b/a
-    r_end = rho/a
-    def scaled_system(r, f, m, k1, a, n1, n_func):
-        abs_m = abs(m)
-        n_r = n_func(r) 
-        # de matrix 
-        A11 = -abs_m
-        A12 = -k1*a
-        A21 = (k1*a*r**2*(n_r**2/n1**2))-(m**2/(k1*a))
-        A22 = -abs_m
-        # de oplossing voor de afgeleide naar geschaalde rho
-        df1 = (1/r)*(A11*f[0]+A12*f[1])
-        df2 = (1/r)*(A21*f[0]+A22*f[1])
+    r = rho/a
+    
+    def scaled_system(r, f, m, k1, a, n_func, n1):
+        f1, f2 = f
+        a11 = -np.abs(m)
+        a12 = -k1*a
+        a21 = k1*a*r**2*n_func(r)**2/(n1**1)-m**2/(k1*a)
+        a22 = -np.abs(m)
+        
+        df1 = 1/r * (a11*f1 + a12*f2)
+        df2 = 1/r * (a21*f1 + a22*f2)
+        
         return [df1, df2]
 
-    for m in range(-m_max, m_max + 1):
-        f_initial = [0j, 0.5+0j] # willekeurige Hphi
-        
-        sol = solve_ivp(scaled_system, [r_start, r_end], f_initial, args=(m, k1, a, n1, n_func), method='RK45', rtol=1e-10, atol=1e-12)
-        f_final = sol.y[:, -1]
+    for m in range(-m_max, m_max):
+        f1 = 0
+        f2 = 1 + 0j
 
-        Ez_c = 1j*((rho/a)**abs(m))*f_final[0]
-        Hphi_c = ((rho/a)**(abs(m)-1))*f_final[1]
+        f_0 = [f1, f2]
         
-        Ez += Ez_c*np.exp(1j*m*phi)
-        Hphi += Hphi_c*np.exp(1j*m*phi)
-            
-    return Ez, Hphi, sol.y
+        sol = solve_ivp(scaled_system, [r_start, r], f_0, args=(m, k1, a, n_func, n1), method='RK45', rtol=1e-10, atol=1e-12)
+        f_sol = sol.y[:, -1]
+
+        ez = r**np.abs(m)/1j*f_sol[0]
+        hphi = r**(np.abs(m)-1)*f_sol[1]
+        
+        Ez += np.exp(1j*m*phi)*ez
+        Hphi += np.exp(1j*m*phi)*Y1*hphi
+ 
+    return Ez, Hphi
