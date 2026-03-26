@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # PARAMETERS
 wavelength = 1
-m_max = 40 # +1 of what comes out of the tolerance function, otherwise it is not working, m should be m>>ka
+m_max = 15 # +1 of what comes out of the tolerance function, otherwise it is not working, m should be m>>ka
 phi = np.linspace(-np.pi, np.pi, 400)
 significance = 1e-1 # tolerance
 omega = 2*np.pi*3e8/wavelength
@@ -53,7 +53,7 @@ f.plot_am_log(am_r, m_max)
 f.plot_sigma(phi, sigma_scat, wavelength)
 
 ## 2
-rho = 1.3
+rho = 5
 # ANALYTICAL
 # set PEC coating like NASA paper
 n1 = np.sqrt(1)
@@ -85,17 +85,19 @@ Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, phi, omega, k1, n1, n_
 
 # je moet niet de absolute waarde nemen en ook niet normaliseren want daardoor liep ik hier op vast
 plt.figure()
-plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP_int)/np.max(np.abs(Ez_cP_int)))
 plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP)/np.max(np.abs(Ez_cP)), "--")
-plt.title("Analytical and numerical")
-plt.legend(["Numerical", "Analytical"])
+plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP_int)/np.max(np.abs(Ez_cP_int)))
+plt.xlabel(r'$\phi$ [deg]')
+plt.ylabel(r'$|E_z|/\text{max}(E_z)$ [-]')
 
-#logisch dat die sigma plots niet overeen komen omdat je bij de analytical 
+plt.title(r'Analytical and numerical @ $\rho=5$')
+plt.legend(["Analytical", "Numerical"])
+#logisch dat die sigma plots niet overeen komen omdat je bij de analytical
 #alleen Escat hebt gebruikt en bij die integrated alles.
 
 sigma_num = f.compute_sigma_scat(rho, phi, Ez_cP_int, E0)
 # plots
-#f.plot_sigma(phi, sigma_scat_cP, wavelength)
+f.plot_sigma(phi, sigma_scat_cP, wavelength)
 
 # only call show at end (helps showing all plots at once on OS X)
 plt.show()

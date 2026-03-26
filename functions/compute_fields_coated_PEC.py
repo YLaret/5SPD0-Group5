@@ -35,7 +35,7 @@ def compute_fields_coated_PEC(rho, phi, omega, k1, n1, n_func, Y1, a, b, m_max, 
 
         f_0 = [f1, f2]
         
-        sol = solve_ivp(scaled_system, [r_start, r], f_0, args=(m, k1, a, n_func, n1), method='RK45', rtol=1e-10, atol=1e-12)
+        sol = solve_ivp(scaled_system, [r_start, r], f_0, args=(m, k1, a, n_func, n1), method='BDF', rtol=1e-10, atol=1e-12)
         f_sol = sol.y[:, -1]
 
         ez = r**np.abs(m)/1j*f_sol[0]
