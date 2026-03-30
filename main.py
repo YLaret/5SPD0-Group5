@@ -54,10 +54,10 @@ Ez, Escat = f.compute_E_z(rho, phi, k1, k2, am_r, am_t, E0, a)
 H_phi = f.compute_H_phi(rho, phi, k1, k2, am_r, am_t, E0, Y1, a)
 sigma_scat = f.compute_sigma_scat(rho, phi, Escat, E0)   # functie uit reader
 
-# plots
-f.plot_am_log(am_r, m_max)
-f.plot_sigma(phi, sigma_scat, wavelength)
-plt.show()
+# # plots
+# f.plot_am_log(am_r, m_max)
+# f.plot_sigma(phi, sigma_scat, wavelength)
+# plt.show()
 
 # # plots
 # f.plot_am_log(am_r, m_max)
@@ -85,35 +85,23 @@ sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit rea
 
 # NUMERICAL
 
-def n_function(r):   # hier kunnen we later de gradient in stoppen
-    return n2
-# compute integrate fields
-rho = 10    #1.7 is de sweet spot
-epsr = np.sqrt(2)
+# In main.py
+def n_function(r):
+    return n2 # Or any refractive index profile n(r)
 
-Ez_cP_int, Hphi_cP_int, soly = f.compute_fields_coated_PEC(rho, phi, k1, n1, n_function, a, b, m_max)
+# 1. Calculate the hybrid field (Numerical inside, Analytical outside)
+Ez_hybrid = f.compute_fields_coated_PEC(rho, phi, k1, n1, n_function, a, b, m_max, E0, Y1)
 
-# hier wordt de bessel en hankel dus wel voor het buitenveld meegenomen,
-#daarom is de plot overlappend bij grote rho omdat dat een hybride oplossing geeft
-Ez_cP_int2 = Ez_cP_int+Ein_cP+Escat_cP
+# 2. Calculate the purely Analytical field (for comparison)
+# Use your existing compute_E_z_coated_PEC function here
+Ez_analytical, _, _ = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
 
-# je moet niet de absolute waarde nemen en ook niet normaliseren want daardoor liep ik hier op vast
-plt.plot(phi / (2*np.pi) * 360,
-         (Ez_cP_int2))
-plt.plot(phi / (2*np.pi) * 360,
-         (Ez_cP), "--")
-plt.title("Analytical and numerical")
-plt.legend(["Numerical", "Analytical"])
-plt.show()
-
-
-#logisch dat die sigma plots niet overeen komen omdat je bij de analytical 
-#alleen Escat hebt gebruikt en bij die integrated alles.
-
-sigma_num = f.compute_sigma_scat(rho, phi, Ez_cP_int, E0)
-# plots
-f.plot_sigma(phi, sigma_scat_cP, wavelength)
-f.plot_sigma(phi, sigma_num, wavelength)
-
-# only call show at end (helps showing all plots at once on OS X)
+# 3. Plot - They should now overlap in absolute value and phase!
+plt.figure(figsize=(10,6))
+plt.plot(phi, np.real(Ez_hybrid), label="Hybrid (Num/Analyt)")
+plt.plot(phi, np.real(Ez_analytical), "--", label="Analytical Reference")
+plt.title(f"Comparison of Total Real Field at rho={rho}")
+plt.xlabel("Phi (rad)")
+plt.ylabel("Re(Ez)")
+plt.legend()
 plt.show()
