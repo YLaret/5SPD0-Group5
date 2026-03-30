@@ -1,8 +1,16 @@
 import numpy as np
 from scipy.integrate import solve_ivp
-from scipy.special import jv, yv, jvp, yvp
+from scipy.special import jv, jvp, h2vp, hankel2
 
-def compute_fields_coated_PEC(rho, phi, k1, n1, n_func, a, b, m_max, E0, Y1):
+def compute_fields_hybrid(rho, phi, k1, n1, n_func, a, b, m_max, E0, Y1):
+    """
+    rho: observation point
+    k1: wavenumber outside cylinder
+    n1: refractive index outside cylinder
+    n_func: a function n(r) that returns refractive index at normalized radius r
+    a: outer radius
+    b: PEC radius
+    """
     Ez_total = np.zeros_like(phi, dtype=complex)
     r_obs = rho / a
     r_start = b / a
