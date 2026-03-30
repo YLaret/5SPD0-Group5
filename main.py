@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # PARAMETERS
 wavelength = 1
-m_max = 13 # +1 of what comes out of the tolerance function, otherwise it is not working, m should be m>>ka
+m_max = 15 # +1 of what comes out of the tolerance function, otherwise it is not working, m should be m>>ka
 phi = np.linspace(-np.pi, np.pi, 400)
 significance = 1e-1 # tolerance
 omega = 2*np.pi*3e8/wavelength
@@ -31,6 +31,7 @@ k2 = k1 * n2
 
 Y1 = k1/(omega*mu1)
 Y2 = np.sqrt(1/mu1)  # epsilon 1 = 1
+Z1 = 1/Y1
 
 # ### SUBPROBLEMS
 # ## 1
@@ -40,13 +41,6 @@ n2 = np.sqrt(1e8)
 k1 = 2*np.pi/wavelength *n1
 k2 = k1 * n2
 
-Y1 = k1/(omega*mu1)
-Z1 = 1/Y1
-Y2 = np.sqrt(1/mu1)
-
-Y1 = k1/(omega*mu1)
-Y2 = np.sqrt(1/mu1)
-
 
 # # compute fields
 am_r, am_t = f.compute_complex_amplitudes(k1, k2, m_max, a)
@@ -54,19 +48,12 @@ Ez, Escat = f.compute_E_z(rho, phi, k1, k2, am_r, am_t, E0, a)
 H_phi = f.compute_H_phi(rho, phi, k1, k2, am_r, am_t, E0, Y1, a)
 sigma_scat = f.compute_sigma_scat(rho, phi, Escat, E0)   # functie uit reader
 
-# # plots
-# f.plot_am_log(am_r, m_max)
-# f.plot_sigma(phi, sigma_scat, wavelength)
-# plt.show()
+# plots
+f.plot_am_log(am_r, m_max)
+f.plot_sigma(phi, sigma_scat, wavelength)
 
-# # plots
-# f.plot_am_log(am_r, m_max)
-# f.plot_sigma(phi, sigma_scat, wavelength)
-
-
-
-#%%
 ## 2
+rho = 5
 # ANALYTICAL
 # set PEC coating like NASA paper
 n1 = np.sqrt(1)
@@ -82,15 +69,12 @@ am_r, am_c = f.compute_complex_amplitudes_coated_PEC(k1, k2, m_max, a,b)
 Ez_cP, Escat_cP, Ein_cP = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
 sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit reader
 
-
 # NUMERICAL
-
-# In main.py
 def n_function(r):
     return n2 # Or any refractive index profile n(r)
 
 # 1. Calculate the hybrid field (Numerical inside, Analytical outside)
-Ez_hybrid = f.compute_fields_coated_PEC(rho, phi, k1, n1, n_function, a, b, m_max, E0, Y1)
+Ez_hybrid = f.compute_fields_hybrid(rho, phi, k1, n1, n_function, a, b, m_max, E0, Y1)
 
 # 2. Calculate the purely Analytical field (for comparison)
 # Use your existing compute_E_z_coated_PEC function here
@@ -105,3 +89,37 @@ plt.xlabel("Phi (rad)")
 plt.ylabel("Re(Ez)")
 plt.legend()
 plt.show()
+
+
+
+# # compute integrate fields
+# epsr = np.sqrt(2)
+
+# def n_func(rho):
+#     if rho < b:
+#         return 1e8 # PEC
+#     elif rho < a:
+#         return np.sqrt(2) # coating
+#     else:
+#         return 1
+
+# Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, phi, omega, k1, n1, n_func, Y1, a, b, m_max, eps0, mu0)
+
+# # je moet niet de absolute waarde nemen en ook niet normaliseren want daardoor liep ik hier op vast
+# plt.figure()
+# plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP)/np.max(np.abs(Ez_cP)), "--")
+# plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP_int)/np.max(np.abs(Ez_cP_int)))
+# plt.xlabel(r'$\phi$ [deg]')
+# plt.ylabel(r'$|E_z|/\text{max}(E_z)$ [-]')
+
+# plt.title(r'Analytical and numerical @ $\rho=5$')
+# plt.legend(["Analytical", "Numerical"])
+# #logisch dat die sigma plots niet overeen komen omdat je bij de analytical
+# #alleen Escat hebt gebruikt en bij die integrated alles.
+
+# sigma_num = f.compute_sigma_scat(rho, phi, Ez_cP_int, E0)
+# # plots
+# f.plot_sigma(phi, sigma_scat_cP, wavelength)
+
+# # only call show at end (helps showing all plots at once on OS X)
+# plt.show()
