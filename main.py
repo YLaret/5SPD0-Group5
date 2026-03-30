@@ -88,22 +88,23 @@ sigma_scat_cP = f.compute_sigma_scat(rho, phi, Escat_cP, E0)   # functie uit rea
 def n_function(r):   # hier kunnen we later de gradient in stoppen
     return n2
 # compute integrate fields
-rho = 10    #1.7 is de sweet spot
+rho = 1.1  #1.7 is de sweet spot
 epsr = np.sqrt(2)
 
-Ez_cP_int, Hphi_cP_int, soly = f.compute_fields_coated_PEC(rho, phi, k1, n1, n_function, a, b, m_max)
+Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, phi, k1, n1, n_function, a, b, m_max, am_c, am_r)
 
 # hier wordt de bessel en hankel dus wel voor het buitenveld meegenomen,
 #daarom is de plot overlappend bij grote rho omdat dat een hybride oplossing geeft
-Ez_cP_int2 = Ez_cP_int+Ein_cP+Escat_cP
+Ez_cP_int2 = Ez_cP_int#+Ein_cP+Escat_cP
 
 # je moet niet de absolute waarde nemen en ook niet normaliseren want daardoor liep ik hier op vast
 plt.plot(phi / (2*np.pi) * 360,
-         (Ez_cP_int2))
+         (Ez_cP_int))
 plt.plot(phi / (2*np.pi) * 360,
          (Ez_cP), "--")
 plt.title("Analytical and numerical")
 plt.legend(["Numerical", "Analytical"])
+#plt.ylim([-1e-18, 1e-18])
 plt.show()
 
 
