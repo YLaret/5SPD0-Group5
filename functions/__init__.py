@@ -10,3 +10,4 @@ from .min_m_order import min_m_order
 from .plot_am_log import plot_am_log
 from .plot_sigma import plot_sigma
 from .compute_fields_hybrid import compute_fields_hybrid
+from .compute_fields_graded_index import compute_fields_graded_index

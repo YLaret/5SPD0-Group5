@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.special import jv, jvp, h2vp, hankel2
 
-def compute_fields_hybrid(rho, phi, k1, n1, n2, a, b, m_max, E0, Y1):
+def compute_fields_graded_index(rho, phi, k1, n1, n2, n_func, a, b, m_max, E0, Y1):
     """
     rho: observation point
     k1: wavenumber outside cylinder
@@ -21,7 +21,7 @@ def compute_fields_hybrid(rho, phi, k1, n1, n2, a, b, m_max, E0, Y1):
         f_init = [0j, 1.0 + 0j]
 
         def ode_system(r, f):
-            nr = n2(r)
+            nr = n_func(r, n1, n2, rho)
             A11, A12 = -abs_m, -k1 * a
             A21 = (k1 * a * r**2 * (nr**2 / n1**2)) - (m**2 / (k1 * a))
             A22 = -abs_m
