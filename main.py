@@ -7,6 +7,7 @@ Created on Tue Feb 24 13:07:33 2026
 import functions as f
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
 # PARAMETERS
 wavelength = 1
@@ -25,21 +26,16 @@ b = wavelength
 rho = 1e5 # pseudo infinity
 
 n1 = np.sqrt(1)
-n2 = np.sqrt(1e9)
-k1 = 2*np.pi/wavelength *n1
-k2 = k1 * n2
+n2 = np.sqrt(2)
+k1 = omega * np.sqrt(mu0 * n1**2 * eps0)
+k2 = omega * np.sqrt(mu0 * n2**2 * eps0)
 
 Y1 = k1/(omega*mu1)
-Y2 = np.sqrt(1/mu1)  # epsilon 1 = 1
+Y2 = np.sqrt(1/mu1)
 Z1 = 1/Y1
 
 ### SUBPROBLEMS
 ## 1
-# set homogeneous PEC interior like NASA paper
-n1 = np.sqrt(1)
-n2 = np.sqrt(1e8)
-k1 = 2*np.pi/wavelength *n1
-k2 = k1 * n2
 
 # Compute fields
 am_r, am_t = f.compute_complex_amplitudes(k1, k2, m_max, a)
@@ -54,14 +50,6 @@ f.plot_sigma(phi, sigma_scat, wavelength)
 ## 2
 rho = (a + b) / 2
 # ANALYTICAL
-# Set PEC coating like NASA paper
-n1 = np.sqrt(1)
-n2 = np.sqrt(2)
-k1 = omega * np.sqrt(mu0 * n1**2 * eps0)
-k2 = omega * np.sqrt(mu0 * n2**2 * eps0)
-
-Y1 = k1/(omega*mu1)
-Y2 = np.sqrt(1/mu1)
 
 # Compute fields
 am_r, am_c = f.compute_complex_amplitudes_coated_PEC(k1, k2, m_max, a,b)
@@ -78,74 +66,81 @@ Ez_hybrid = f.compute_fields_hybrid(rho, phi, k1, n1, n_function, a, b, m_max, E
 # Calculate the analytical field for comparison
 Ez_analytical, _, _ = f.compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b)
 
-# 3. Plot - They should now overlap in absolute value and phase!
-# plt.figure(figsize=(10,6))
-# plt.plot(phi, np.real(Ez_hybrid), label="Hybrid (Num/Analyt)")
-# plt.plot(phi, np.real(Ez_analytical), "--", label="Analytical Reference")
-# plt.title(f"Comparison of Total Real Field at rho={rho}")
-# plt.xlabel("Phi (rad)")
-# plt.ylabel("Re(Ez)")
-# plt.legend()
-# plt.show()
+# Plot for comparison
+plt.figure(figsize=(10,6))
+plt.plot(phi, np.real(Ez_hybrid), label="Hybrid (Num/Analyt)")
+plt.plot(phi, np.real(Ez_analytical), "--", label="Analytical Reference")
+plt.title(f"Comparison of Total Real Field at rho={rho}")
+plt.xlabel("Phi (rad)")
+plt.ylabel("Re(Ez)")
+plt.legend()
+plt.show()
 
 ## 3
-rho_3 = 6*wavelength
+rho_3 = 6 * wavelength
 def n_function(r, n1, n2, rho_3):
     epsr = (n2**2 - n1**2) * (1 - rho_3**2 / a**2) + n1**2
     return epsr
 
 Ez_hybrid_3 = f.compute_fields_graded_index(rho_3, phi, k1, n1, n2, n_function, a, b, m_max, E0, Y1)
 
-# Plot for comparison
-plt.figure(figsize=(10,6))
-plt.plot(phi, np.real(Ez_hybrid), label="Hybrid (Num/Analyt)")
-plt.plot(phi, np.real(Ez_analytical), "--", label="Analytical Reference")
-plt.plot(phi, np.real(Ez_hybrid_3), ".", label="Graded index")
+# # Plot for comparison
+# plt.figure(figsize=(10,6))
+# plt.plot(phi, np.real(Ez_hybrid), label="Hybrid (Num/Analyt)")
+# plt.plot(phi, np.real(Ez_analytical), "--", label="Analytical Reference")
+# plt.plot(phi, np.real(Ez_hybrid_3), ".", label="Graded index")
+# plt.title(f"Comparison of Total Real Field at rho={rho_3}")
+# plt.xlabel("Phi (rad)")
+# plt.ylabel("Re(Ez)")
+# plt.legend()
+# plt.show()
 
-plt.title(f"Comparison of Total Real Field at rho={rho_3}")
-plt.xlabel("Phi (rad)")
-plt.ylabel("Re(Ez)")
-plt.legend()
-plt.show()
-
-# |E|^2/E0 plot
-Ez_plot = abs(Ez_hybrid_3)**2 / E0
+# Plot
 plt.figure(figsize=(10,6))
-plt.plot(phi, np.real(Ez_plot))
+plt.plot(phi, np.real(abs(Ez_hybrid_3)**2 / E0))
 plt.title(f"Ez for graded-index cylinder at rho={rho_3}")
 plt.xlabel("Phi (rad)")
 plt.ylabel("Re(Ez)")
 plt.grid()
 plt.show()
 
-# # compute integrate fields
-# epsr = np.sqrt(2)
+## 4
+rho_4 = 24 * wavelength
+Ez_hybrid_4 = f.compute_fields_graded_index(rho_4, phi, k1, n1, n2, n_function, a, b, m_max, E0, Y1)
 
-# def n_func(rho):
-#     if rho < b:
-#         return 1e8 # PEC
-#     elif rho < a:
-#         return np.sqrt(2) # coating
-#     else:
-#         return 1
+# Plot
+plt.figure(figsize=(10,6))
+plt.plot(phi, np.real(abs(Ez_hybrid_4)**2 / E0))
+plt.title(f"Ez for graded-index cylinder at rho={rho_4}")
+plt.xlabel("Phi (rad)")
+plt.ylabel("Re(Ez)")
+plt.grid()
+plt.show()
 
-# Ez_cP_int, Hphi_cP_int = f.compute_fields_coated_PEC(rho, phi, omega, k1, n1, n_func, Y1, a, b, m_max, eps0, mu0)
+# Scaling factors to test
+scalings = [6, 24]
+results_time = {}
 
-# # je moet niet de absolute waarde nemen en ook niet normaliseren want daardoor liep ik hier op vast
-# plt.figure()
-# plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP)/np.max(np.abs(Ez_cP)), "--")
-# plt.plot(phi / (2*np.pi) * 360, np.abs(Ez_cP_int)/np.max(np.abs(Ez_cP_int)))
-# plt.xlabel(r'$\phi$ [deg]')
-# plt.ylabel(r'$|E_z|/\text{max}(E_z)$ [-]')
+for s in scalings:
+    a_scaled = s * wavelength
+    # IMPORTANT: m_max must scale with 'a' to ensure convergence
+    # Rule of thumb: m_max ~ k1 * a + safety_margin
+    m_max_scaled = int(np.ceil(k1 * a_scaled) + 15) 
+    
+    start_time = time.time()
+    
+    # Run the graded-index calculation
+    # Ensure your n_function uses a_scaled correctly inside!
+    Ez_result = f.compute_fields_graded_index(
+        a_scaled, phi, k1, n1, n2, n_function, a_scaled, b, m_max_scaled, E0, Y1
+    )
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    results_time[s] = duration
+    
+    print(f"Radius {s}lambda: m_max={m_max_scaled}, Time={duration:.4f} seconds")
 
-# plt.title(r'Analytical and numerical @ $\rho=5$')
-# plt.legend(["Analytical", "Numerical"])
-# #logisch dat die sigma plots niet overeen komen omdat je bij de analytical
-# #alleen Escat hebt gebruikt en bij die integrated alles.
-
-# sigma_num = f.compute_sigma_scat(rho, phi, Ez_cP_int, E0)
-# # plots
-# f.plot_sigma(phi, sigma_scat_cP, wavelength)
-
-# # only call show at end (helps showing all plots at once on OS X)
-# plt.show()
+# Calculate scaling ratio
+ratio = results_time[24] / results_time[6]
+print(f"The computational effort increased by a factor of: {ratio:.2f}")
