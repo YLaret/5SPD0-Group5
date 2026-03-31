@@ -2,7 +2,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.special import jv, jvp, h2vp, hankel2
 
-def compute_fields_coated_PEC(rho, phi, k1, n1, n_func, a, b, m_max, E0, Y1):
+def compute_fields_hybrid(rho, phi, k1, n1, n_func, a, b, m_max, E0, Y1):
     """
     rho: observation point
     k1: wavenumber outside cylinder

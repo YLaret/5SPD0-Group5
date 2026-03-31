@@ -13,6 +13,7 @@ def compute_E_z(rho, phi, k1, k2, am_r, am_t, E0, a):
     """
     Ez = 0j
     Escat = 0j
+    Ein = 0j
     m_max = int(len(am_r)/2)
     for m in range(-m_max, m_max):
         # Angular harmonic coefficients
@@ -27,6 +28,7 @@ def compute_E_z(rho, phi, k1, k2, am_r, am_t, E0, a):
         if rho>=a:
             Ez += np.exp(1j*m*phi)*E0*(em_i+em_r)
             Escat += np.exp(1j*m*phi)*E0*em_r
+            #Ein += np.exp(1j*m*phi)*E0*em_i
         elif rho<=a:
             Ez += np.exp(1j*m*phi)*E0*em_t
-    return Ez, Escat
+    return Ez, Escat#, Ein
