@@ -33,8 +33,6 @@ def compute_E_z_coated_PEC(rho, phi, k1, k2, am_r, am_c, E0, a, b):
         em_i = (-1j)**m * Jm_k1rho
         em_r = am_r[m_max+m] * (-1j)**m * H2m_k1rho
         em_c = am_c[m_max+m] * (-1j)**m * coating_basis
-        print("am_r=", am_r)
-        print("am_c=", am_c)
         
         if rho>=a:
             Ez += np.exp(1j*m*phi)*E0*(em_i+em_r)

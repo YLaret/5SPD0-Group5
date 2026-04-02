@@ -3,11 +3,13 @@ from .compute_complex_amplitudes_coated_PEC import compute_complex_amplitudes_co
 from .compute_E_z import compute_E_z
 from .compute_E_z_coated_PEC import compute_E_z_coated_PEC
 from .compute_fields_coated_PEC import compute_fields_coated_PEC
+from .compute_fields_numerical import compute_fields_numerical
 from .compute_H_phi import compute_H_phi
 from .compute_sigma import compute_sigma
 from .compute_sigma_scat import compute_sigma_scat
 from .min_m_order import min_m_order
 from .plot_am_log import plot_am_log
 from .plot_sigma import plot_sigma
-from .compute_fields_hybrid import compute_fields_hybrid
-from .compute_fields_graded_index import compute_fields_graded_index
+from .plot_comparison_Emethod import plot_comparison_Emethod
+from .plot_E_boundary import plot_E_boundary
+from .plot_E_animation import plot_E_animation
